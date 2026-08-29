@@ -17,21 +17,14 @@ export async function createFamily(locale: string, formData: FormData) {
 
   const supabase = await createClient();
 
-  const { data: family, error: familyError } = await supabase
-    .from("families")
-    .insert({ name })
-    .select("id")
-    .single();
+  // create_family() does both inserts (the family row, and the caller's
+  // own family_members row as owner) atomically in one SECURITY DEFINER
+  // call -- see the migration for why this can't be two separate
+  // client-side inserts (the family row wasn't yet readable under RLS
+  // between them).
+  const { error } = await supabase.rpc("create_family", { p_name: name });
 
-  if (familyError || !family) {
-    redirect(`/${locale}/onboarding?error=1`);
-  }
-
-  const { error: memberError } = await supabase
-    .from("family_members")
-    .insert({ family_id: family.id, user_id: user.id, role: "owner" });
-
-  if (memberError) {
+  if (error) {
     redirect(`/${locale}/onboarding?error=1`);
   }
 
