@@ -14,7 +14,7 @@ export default async function SignInPage({
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center bg-background px-md py-2xl">
+    <main className="flex flex-1 items-center justify-center bg-background px-[var(--space-md)] py-[var(--space-2xl)]">
       <SignInForm />
     </main>
   );

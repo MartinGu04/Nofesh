@@ -33,11 +33,16 @@
   --accent-muted: var(--nofesh-teal-light);
   --border: #e3d6bd;
 
-  /* Radius */
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --radius-pill: 999px;
+  /* Radius. Prefixed --nofesh-* like the palette above, and NOT --radius-*:
+     Tailwind's own theme already reserves --radius-sm/md/lg as real (if
+     much smaller) default values, so aliasing our value onto the same name
+     one line down in globals.css (`--radius-sm: var(--radius-sm)`) would be
+     a circular reference to itself, not to this token -- exactly the bug
+     this comment is here to prevent reintroducing. */
+  --nofesh-radius-sm: 10px;
+  --nofesh-radius-md: 16px;
+  --nofesh-radius-lg: 24px;
+  --nofesh-radius-pill: 999px;
 
   /* Spacing */
   --space-xs: 8px;

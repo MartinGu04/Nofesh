@@ -33,8 +33,8 @@ export default async function ProfilePage({
   return (
     <>
       <AppHeader locale={locale} />
-      <main className="flex flex-1 items-center justify-center bg-background px-md py-2xl">
-        <div className="flex w-full max-w-sm flex-col gap-6 rounded-lg bg-surface-raised p-lg shadow-[0_12px_32px_rgba(18,44,66,0.10)]">
+      <main className="flex flex-1 items-center justify-center bg-background px-[var(--space-md)] py-[var(--space-2xl)]">
+        <div className="flex w-full max-w-sm flex-col gap-6 rounded-lg bg-surface-raised p-[var(--space-lg)] shadow-[0_12px_32px_rgba(18,44,66,0.10)]">
           <h1 className="font-display text-2xl text-text">
             {t("profile.title")}
           </h1>
@@ -50,12 +50,12 @@ export default async function ProfilePage({
                 type="text"
                 name="displayName"
                 defaultValue={profile?.display_name ?? ""}
-                className="rounded-md border border-border bg-background px-sm py-2 text-text"
+                className="rounded-md border border-border bg-background px-[var(--space-sm)] py-2 text-text"
               />
             </label>
             <button
               type="submit"
-              className="flex h-12 items-center justify-center rounded-pill bg-primary px-lg font-semibold text-white transition-colors hover:bg-primary-hover"
+              className="flex h-12 items-center justify-center rounded-pill bg-primary px-[var(--space-lg)] font-semibold text-white transition-colors hover:bg-primary-hover"
             >
               {t("common.save")}
             </button>

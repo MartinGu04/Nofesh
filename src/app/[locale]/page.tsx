@@ -29,7 +29,7 @@ export default async function HomePage({
   return (
     <>
       <AppHeader locale={locale} />
-      <main className="flex flex-1 flex-col items-center justify-center gap-3 px-md py-2xl text-center">
+      <main className="flex flex-1 flex-col items-center justify-center gap-3 px-[var(--space-md)] py-[var(--space-2xl)] text-center">
         <h1 className="font-display text-3xl text-text">
           {t("emptyTitle")}
         </h1>

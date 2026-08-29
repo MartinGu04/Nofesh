@@ -34,8 +34,8 @@ export default async function OnboardingPage({
     const tInvite = await getTranslations("family.invite");
 
     return (
-      <main className="flex flex-1 items-center justify-center bg-background px-md py-2xl">
-        <div className="flex w-full max-w-sm flex-col items-center gap-6 rounded-lg bg-surface-raised p-lg text-center shadow-[0_12px_32px_rgba(18,44,66,0.10)]">
+      <main className="flex flex-1 items-center justify-center bg-background px-[var(--space-md)] py-[var(--space-2xl)]">
+        <div className="flex w-full max-w-sm flex-col items-center gap-6 rounded-lg bg-surface-raised p-[var(--space-lg)] text-center shadow-[0_12px_32px_rgba(18,44,66,0.10)]">
           <div>
             <h1 className="font-display text-2xl text-text">
               {tInvite("title")}
@@ -45,7 +45,7 @@ export default async function OnboardingPage({
           {family && <InviteCode code={family.invite_code} />}
           <Link
             href="/"
-            className="flex h-12 w-full items-center justify-center rounded-pill bg-primary px-lg font-semibold text-white transition-colors hover:bg-primary-hover"
+            className="flex h-12 w-full items-center justify-center rounded-pill bg-primary px-[var(--space-lg)] font-semibold text-white transition-colors hover:bg-primary-hover"
           >
             {tInvite("continueCta")}
           </Link>
@@ -60,8 +60,8 @@ export default async function OnboardingPage({
   const joinFamilyWithLocale = joinFamily.bind(null, locale);
 
   return (
-    <main className="flex flex-1 items-center justify-center bg-background px-md py-2xl">
-      <div className="flex w-full max-w-sm flex-col gap-6 rounded-lg bg-surface-raised p-lg shadow-[0_12px_32px_rgba(18,44,66,0.10)]">
+    <main className="flex flex-1 items-center justify-center bg-background px-[var(--space-md)] py-[var(--space-2xl)]">
+      <div className="flex w-full max-w-sm flex-col gap-6 rounded-lg bg-surface-raised p-[var(--space-lg)] shadow-[0_12px_32px_rgba(18,44,66,0.10)]">
         <div className="text-center">
           <h1 className="font-display text-2xl text-text">
             {tCreate("title")}
@@ -78,12 +78,12 @@ export default async function OnboardingPage({
               name="name"
               required
               placeholder={tCreate("namePlaceholder")}
-              className="rounded-md border border-border bg-background px-sm py-2 text-text"
+              className="rounded-md border border-border bg-background px-[var(--space-sm)] py-2 text-text"
             />
           </label>
           <button
             type="submit"
-            className="flex h-12 items-center justify-center rounded-pill bg-primary px-lg font-semibold text-white transition-colors hover:bg-primary-hover"
+            className="flex h-12 items-center justify-center rounded-pill bg-primary px-[var(--space-lg)] font-semibold text-white transition-colors hover:bg-primary-hover"
           >
             {tCreate("cta")}
           </button>
@@ -103,12 +103,12 @@ export default async function OnboardingPage({
               name="inviteCode"
               dir="ltr"
               placeholder={tJoin("codeLabel")}
-              className="rounded-md border border-border bg-background px-sm py-2 text-text tracking-widest"
+              className="rounded-md border border-border bg-background px-[var(--space-sm)] py-2 text-text tracking-widest"
             />
           </label>
           <button
             type="submit"
-            className="flex h-12 items-center justify-center rounded-pill border border-accent px-lg font-semibold text-accent transition-colors hover:bg-accent-muted/30"
+            className="flex h-12 items-center justify-center rounded-pill border border-accent px-[var(--space-lg)] font-semibold text-accent transition-colors hover:bg-accent-muted/30"
           >
             {tJoin("cta")}
           </button>

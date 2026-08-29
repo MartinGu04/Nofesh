@@ -22,14 +22,14 @@ export function InviteCode({ code }: { code: string }) {
     <div className="flex flex-col items-center gap-2">
       <bdi
         dir="ltr"
-        className="rounded-md border border-border bg-background px-lg py-3 font-display text-2xl tracking-[0.3em] text-text"
+        className="rounded-md border border-border bg-background px-[var(--space-lg)] py-3 font-display text-2xl tracking-[0.3em] text-text"
       >
         {code}
       </bdi>
       <button
         type="button"
         onClick={handleCopy}
-        className="rounded-pill border border-accent px-md py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent-muted/30"
+        className="rounded-pill border border-accent px-[var(--space-md)] py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent-muted/30"
       >
         {copied ? t("copied") : t("cta")}
       </button>

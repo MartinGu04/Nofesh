@@ -22,12 +22,12 @@ export default function RouteError({
   }, [error]);
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-background px-md py-2xl text-center">
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-background px-[var(--space-md)] py-[var(--space-2xl)] text-center">
       <p className="text-text-muted">{t("generic")}</p>
       <button
         type="button"
         onClick={reset}
-        className="flex h-12 items-center justify-center rounded-pill bg-primary px-lg font-semibold text-white transition-colors hover:bg-primary-hover"
+        className="flex h-12 items-center justify-center rounded-pill bg-primary px-[var(--space-lg)] font-semibold text-white transition-colors hover:bg-primary-hover"
       >
         {t("retry")}
       </button>

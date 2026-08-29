@@ -7,11 +7,11 @@ export async function AppHeader({ locale }: { locale: string }) {
   const signOutWithLocale = signOut.bind(null, locale);
 
   return (
-    <header className="flex items-center justify-between border-b border-border px-md py-sm">
+    <header className="flex items-center justify-between border-b border-border px-[var(--space-md)] py-[var(--space-sm)]">
       <Link href="/" className="font-display text-lg text-text">
         {t("app.name")}
       </Link>
-      <nav className="flex items-center gap-md text-sm">
+      <nav className="flex items-center gap-[var(--space-md)] text-sm">
         <Link href="/profile" className="text-text-muted hover:text-text">
           {t("profile.title")}
         </Link>

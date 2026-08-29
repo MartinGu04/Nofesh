@@ -14,7 +14,7 @@ export default function Loading() {
     <div
       role="status"
       aria-label={t("loading")}
-      className="flex flex-1 items-center justify-center bg-background py-2xl"
+      className="flex flex-1 items-center justify-center bg-background py-[var(--space-2xl)]"
     >
       <svg
         width="64"

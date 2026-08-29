@@ -75,7 +75,7 @@ export function SignInForm() {
   }
 
   return (
-    <div className="flex w-full max-w-sm flex-col gap-6 rounded-lg bg-surface-raised p-lg shadow-[0_12px_32px_rgba(18,44,66,0.10)]">
+    <div className="flex w-full max-w-sm flex-col gap-6 rounded-lg bg-surface-raised p-[var(--space-lg)] shadow-[0_12px_32px_rgba(18,44,66,0.10)]">
       <div className="flex flex-col gap-2 text-center">
         <h1 className="font-display text-3xl text-text">{t("title")}</h1>
         <p className="text-sm text-text-muted">{t("subtitle")}</p>
@@ -85,7 +85,7 @@ export function SignInForm() {
         type="button"
         onClick={handleGoogleSignIn}
         disabled={pending}
-        className="flex h-12 items-center justify-center rounded-pill bg-primary px-lg font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-50"
+        className="flex h-12 items-center justify-center rounded-pill bg-primary px-[var(--space-lg)] font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-50"
       >
         {t("googleCta")}
       </button>
@@ -107,13 +107,13 @@ export function SignInForm() {
               autoComplete="email"
               value={email}
               onChange={(inputEvent) => setEmail(inputEvent.target.value)}
-              className="rounded-md border border-border bg-background px-sm py-2 text-text"
+              className="rounded-md border border-border bg-background px-[var(--space-sm)] py-2 text-text"
             />
           </label>
           <button
             type="submit"
             disabled={pending}
-            className="flex h-12 items-center justify-center rounded-pill border border-accent px-lg font-semibold text-accent transition-colors hover:bg-accent-muted/30 disabled:opacity-50"
+            className="flex h-12 items-center justify-center rounded-pill border border-accent px-[var(--space-lg)] font-semibold text-accent transition-colors hover:bg-accent-muted/30 disabled:opacity-50"
           >
             {t("otpCta")}
           </button>
@@ -136,13 +136,13 @@ export function SignInForm() {
               required
               value={code}
               onChange={(inputEvent) => setCode(inputEvent.target.value)}
-              className="rounded-md border border-border bg-background px-sm py-2 text-text tracking-widest"
+              className="rounded-md border border-border bg-background px-[var(--space-sm)] py-2 text-text tracking-widest"
             />
           </label>
           <button
             type="submit"
             disabled={pending}
-            className="flex h-12 items-center justify-center rounded-pill bg-primary px-lg font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-50"
+            className="flex h-12 items-center justify-center rounded-pill bg-primary px-[var(--space-lg)] font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-50"
           >
             {t("otpCta")}
           </button>
