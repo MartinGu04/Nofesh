@@ -33,3 +33,10 @@ isolation test is a pgTAP test at
 `supabase/tests/database/rls_family_isolation.sql`, run with
 `npx supabase test db` against a local stack (`npx supabase start`, which
 needs Docker) or a linked project's test database.
+
+If the CLI can't reach your project directly (no local Docker, no DB
+password shared with an agent), apply a migration by pasting its file's
+contents into the Supabase dashboard's SQL Editor instead, in order. After
+applying, `supabase/verification/phase0_rls_check.sql` is a read-only,
+self-rolling-back script for the SQL Editor that checks cross-family RLS
+isolation without needing a real second user or the CLI.
