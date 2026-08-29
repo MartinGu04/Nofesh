@@ -1,0 +1,79 @@
+/**
+ * Nofesh design tokens, transcribed from DESIGN.md's frontmatter. DESIGN.md
+ * is the source of truth — if these ever drift apart, DESIGN.md wins and
+ * this file should be updated to match, not the other way around.
+ *
+ * Semantic tokens (surface/background/text/primary/...) are what components
+ * should consume; the raw palette tokens exist mainly to define them and for
+ * the rare case a design calls for the literal brand color rather than a
+ * semantic role.
+ */
+
+:root {
+  /* Raw palette (light) */
+  --nofesh-navy: #122c42;
+  --nofesh-navy-deep: #0b1e30;
+  --nofesh-teal: #3e8a96;
+  --nofesh-teal-light: #8fc3c9;
+  --nofesh-terracotta: #d97b4f;
+  --nofesh-terracotta-deep: #b75f38;
+  --nofesh-sand: #efe1c8;
+  --nofesh-cream: #faf5eb;
+  --nofesh-ink: #1e2a33;
+
+  /* Semantic tokens (light, default) */
+  --background: var(--nofesh-cream);
+  --surface: var(--nofesh-sand);
+  --surface-raised: #ffffff;
+  --text: var(--nofesh-ink);
+  --text-muted: #5b6b75;
+  --primary: var(--nofesh-terracotta);
+  --primary-hover: var(--nofesh-terracotta-deep);
+  --accent: var(--nofesh-teal);
+  --accent-muted: var(--nofesh-teal-light);
+  --border: #e3d6bd;
+
+  /* Radius */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  /* Spacing */
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 20px;
+  --space-lg: 32px;
+  --space-xl: 56px;
+  --space-2xl: 96px;
+}
+
+/* Dark mode: a designed second palette, not an inversion of light. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: var(--nofesh-navy-deep);
+    --surface: #122c42;
+    --surface-raised: #17364f;
+    --text: #f6efdf;
+    --text-muted: #c9d6dc;
+    --primary: #e79a6d;
+    --primary-hover: #d97b4f;
+    --accent: #7bb6be;
+    --accent-muted: #4a7d84;
+    --border: #24445f;
+  }
+}
+
+/* Explicit theme override (for a future manual light/dark toggle). */
+:root[data-theme="dark"] {
+  --background: var(--nofesh-navy-deep);
+  --surface: #122c42;
+  --surface-raised: #17364f;
+  --text: #f6efdf;
+  --text-muted: #c9d6dc;
+  --primary: #e79a6d;
+  --primary-hover: #d97b4f;
+  --accent: #7bb6be;
+  --accent-muted: #4a7d84;
+  --border: #24445f;
+}

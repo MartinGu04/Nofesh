@@ -1,0 +1,61 @@
+{
+  "app": {
+    "name": "Nofesh"
+  },
+  "nav": {
+    "home": "Home"
+  },
+  "common": {
+    "continue": "Continue",
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "signOut": "Sign out"
+  },
+  "errors": {
+    "generic": "Something went wrong. Try again?",
+    "invalidInviteCode": "That invite code doesn't match a family. Double-check it and try again."
+  },
+  "auth": {
+    "signIn": {
+      "title": "Sign in to Nofesh",
+      "subtitle": "One place for your family's trip, from planning to memories.",
+      "googleCta": "Continue with Google",
+      "emailLabel": "Email address",
+      "otpCta": "Send me a code",
+      "otpSentTitle": "Check your email",
+      "otpSentBody": "We sent a code to {email}. Enter it below to continue.",
+      "otpCodeLabel": "6-digit code"
+    }
+  },
+  "family": {
+    "create": {
+      "title": "Let's set up your family",
+      "nameLabel": "Family name",
+      "namePlaceholder": "e.g. The Cohen Family",
+      "cta": "Create family"
+    },
+    "invite": {
+      "title": "Invite the rest of the family",
+      "body": "Share this code. Anyone who signs in and enters it joins your family and sees shared trips.",
+      "cta": "Copy invite code",
+      "copied": "Link copied",
+      "continueCta": "Continue to Nofesh"
+    },
+    "join": {
+      "title": "Have an invite code?",
+      "codeLabel": "Invite code",
+      "cta": "Join family",
+      "divider": "or"
+    }
+  },
+  "profile": {
+    "title": "Your profile",
+    "displayNameLabel": "Display name",
+    "saved": "Saved"
+  },
+  "home": {
+    "emptyTitle": "Your family's trips will live here",
+    "emptyBody": "Nofesh will meet you where the trip is. This is just the beginning."
+  }
+}
