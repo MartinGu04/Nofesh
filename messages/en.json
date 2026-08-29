@@ -14,7 +14,8 @@
   },
   "errors": {
     "generic": "Something went wrong. Try again?",
-    "invalidInviteCode": "That invite code doesn't match a family. Double-check it and try again."
+    "invalidInviteCode": "That invite code doesn't match a family. Double-check it and try again.",
+    "retry": "Try again"
   },
   "auth": {
     "signIn": {
