@@ -1,0 +1,65 @@
+@import "tailwindcss";
+@import "../styles/fonts.css";
+@import "../styles/tokens.css";
+
+@theme inline {
+  /* Semantic color tokens -> Tailwind utilities (bg-surface, text-primary, ...) */
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-accent: var(--accent);
+  --color-accent-muted: var(--accent-muted);
+  --color-border: var(--border);
+
+  /* Raw brand palette, for the rare case a literal brand color is needed */
+  --color-navy: var(--nofesh-navy);
+  --color-navy-deep: var(--nofesh-navy-deep);
+  --color-teal: var(--nofesh-teal);
+  --color-teal-light: var(--nofesh-teal-light);
+  --color-terracotta: var(--nofesh-terracotta);
+  --color-terracotta-deep: var(--nofesh-terracotta-deep);
+  --color-sand: var(--nofesh-sand);
+  --color-cream: var(--nofesh-cream);
+  --color-ink: var(--nofesh-ink);
+
+  /* Radius, overriding Tailwind's own (much smaller) --radius-sm/md/lg
+     defaults with DESIGN.md's values, plus a --radius-pill Tailwind doesn't
+     have by default. --radius-* only ever backs the rounded-* utility
+     family, so overriding it globally is safe -- nothing else shares this
+     namespace (contrast with --spacing-* below). Aliased from
+     --nofesh-radius-* in tokens.css specifically to avoid a same-name
+     circular reference (`--radius-sm: var(--radius-sm)` is not a typo fix
+     away from working, it's referencing itself). */
+  --radius-sm: var(--nofesh-radius-sm);
+  --radius-md: var(--nofesh-radius-md);
+  --radius-lg: var(--nofesh-radius-lg);
+  --radius-pill: var(--nofesh-radius-pill);
+
+  /* Typography per DESIGN.md: Frank Ruhl Libre (display), Assistant (body/UI) */
+  --font-display: var(--font-frank-ruhl-libre), Georgia, serif;
+  --font-sans: var(--font-assistant), -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+
+/* DESIGN.md's xs/sm/md/lg/xl/2xl spacing scale (tokens.css: --space-*) is
+   deliberately NOT registered here as --spacing-xs/sm/md/lg/xl/2xl.
+   Tailwind v4's --spacing-* namespace isn't scoped to padding/margin/gap --
+   it's also a resolution candidate for width/height/max-width/min-width/
+   inset/translate, so a project-defined --spacing-sm would silently start
+   backing max-w-sm/w-sm/etc too, colliding with Tailwind's own --container-*
+   scale that max-w-* normally uses (this is exactly what broke the sign-in
+   card: max-w-sm briefly resolved to our 12px "sm" spacing value instead of
+   Tailwind's 24rem default). Use DESIGN.md's spacing scale via Tailwind's
+   arbitrary-value syntax instead -- e.g. `p-[var(--space-lg)]`,
+   `gap-[var(--space-md)]` -- which reads --space-* directly and never
+   touches the shared --spacing-* namespace. */
+
+body {
+  background: var(--background);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
