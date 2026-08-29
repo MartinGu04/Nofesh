@@ -114,8 +114,16 @@ begin
     raise exception 'Destination is required';
   end if;
 
+  if p_start_date is null or p_end_date is null then
+    raise exception 'Start and end dates are required';
+  end if;
+
   if p_end_date < p_start_date then
     raise exception 'End date must be on or after the start date';
+  end if;
+
+  if jsonb_typeof(v_new_travelers) is distinct from 'array' then
+    raise exception 'New travelers must be a JSON array';
   end if;
 
   if exists (

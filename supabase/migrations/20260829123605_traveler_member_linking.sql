@@ -35,17 +35,30 @@ create unique index travelers_family_linked_user_unique
   where linked_user_id is not null;
 
 -- ---------------------------------------------------------------------------
--- 2. Remove the direct insert/update policies from the first migration.
---    Least privilege: nothing in the product writes to travelers directly
---    from the client anymore (creation goes through create_family /
---    join_family_by_invite_code / create_trip; there is no edit-traveler
---    UI yet). Select and delete are untouched -- families can still see and
---    remove their own travelers, and neither of those can mutate
---    linked_user_id.
+-- 2. Remove the direct insert/update/delete policies from the first
+--    migration. Least privilege: nothing in the product writes to
+--    travelers directly from the client anymore (creation goes through
+--    create_family / join_family_by_invite_code / create_trip; there is no
+--    edit- or delete-traveler UI yet). Select is untouched -- families can
+--    still see their own travelers.
+--
+--    Delete is included deliberately, not just insert/update: the original
+--    "travelers are deletable by family members" policy let any
+--    authenticated family member delete ANY traveler in the family,
+--    including a linked adult -- and because trip_participants.traveler_id
+--    is ON DELETE CASCADE, that could silently drop an adult from existing
+--    trips too. That's exactly the kind of direct, unscoped client write
+--    this migration's least-privilege model exists to close off. No
+--    replacement delete policy is added here; a future dedicated
+--    delete-dependent RPC can enforce that a linked adult traveler is never
+--    deleted this way (only removable by leaving the family, a different,
+--    already-guarded path).
 -- ---------------------------------------------------------------------------
 drop policy if exists "travelers are insertable by family members"
   on public.travelers;
 drop policy if exists "travelers are updatable by family members"
+  on public.travelers;
+drop policy if exists "travelers are deletable by family members"
   on public.travelers;
 
 -- ---------------------------------------------------------------------------

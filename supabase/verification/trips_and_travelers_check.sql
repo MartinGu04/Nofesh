@@ -12,8 +12,9 @@
 --
 -- Run the whole script in one go. If every "passed" is true: create_trip
 -- validates family membership, participant family-matching, destination,
--- date range, and non-empty participants; dependent travelers are created
--- correctly (linked_user_id null); direct client writes to travelers and
+-- non-null/valid dates, a well-formed new-travelers array, and non-empty
+-- participants; dependent travelers are created correctly (linked_user_id
+-- null); direct client writes to travelers (insert, update, and delete) and
 -- trip_participants are fully closed off; cross-family isolation holds for
 -- both tables; and the composite FK enforces traveler/trip family-matching
 -- even independent of RLS.
@@ -159,7 +160,8 @@ exception when others then
 end $$;
 
 -- ---------------------------------------------------------------------------
--- Checks 6-8: basic field validation.
+-- Checks 6-10: field validation, including the two hardened in review
+-- (null dates, a malformed p_new_travelers).
 -- ---------------------------------------------------------------------------
 do $$
 begin
@@ -198,22 +200,57 @@ end $$;
 do $$
 begin
   perform public.create_trip(
-    (select family_id from fam_a), 'No Travelers', current_date, current_date + 1,
-    '{}'::uuid[], '[]'::jsonb
+    (select family_id from fam_a), 'Null Start Date', null, current_date + 1,
+    '{}'::uuid[], '[{"name": "X"}]'::jsonb
   );
   insert into verification_results values (
-    8, 'create_trip rejects zero participants', 'blocked (exception)',
+    8, 'create_trip rejects a null start_date', 'blocked (exception)',
     'NOT BLOCKED', false
   );
 exception when others then
   insert into verification_results values (
-    8, 'create_trip rejects zero participants', 'blocked (exception)',
+    8, 'create_trip rejects a null start_date', 'blocked (exception)',
+    'blocked: ' || sqlerrm, true
+  );
+end $$;
+
+do $$
+begin
+  perform public.create_trip(
+    (select family_id from fam_a), 'Malformed New Travelers',
+    current_date, current_date + 1,
+    '{}'::uuid[], '{"name": "X"}'::jsonb  -- an object, not an array
+  );
+  insert into verification_results values (
+    9, 'create_trip rejects p_new_travelers that is not a JSON array',
+    'blocked (exception)', 'NOT BLOCKED', false
+  );
+exception when others then
+  insert into verification_results values (
+    9, 'create_trip rejects p_new_travelers that is not a JSON array',
+    'blocked (exception)', 'blocked: ' || sqlerrm, true
+  );
+end $$;
+
+do $$
+begin
+  perform public.create_trip(
+    (select family_id from fam_a), 'No Travelers', current_date, current_date + 1,
+    '{}'::uuid[], '[]'::jsonb
+  );
+  insert into verification_results values (
+    10, 'create_trip rejects zero participants', 'blocked (exception)',
+    'NOT BLOCKED', false
+  );
+exception when others then
+  insert into verification_results values (
+    10, 'create_trip rejects zero participants', 'blocked (exception)',
     'blocked: ' || sqlerrm, true
   );
 end $$;
 
 -- ---------------------------------------------------------------------------
--- Check 9: no direct client INSERT into travelers (least privilege --
+-- Check 11: no direct client INSERT into travelers (least privilege --
 -- creation only ever happens inside a SECURITY DEFINER RPC).
 -- ---------------------------------------------------------------------------
 do $$
@@ -221,18 +258,18 @@ begin
   insert into public.travelers (family_id, linked_user_id, display_name)
   values ((select family_id from fam_a), null, 'Direct Insert Attempt');
   insert into verification_results values (
-    9, 'Direct client INSERT into travelers is blocked (no policy)',
+    11, 'Direct client INSERT into travelers is blocked (no policy)',
     'blocked (RLS exception)', 'NOT BLOCKED', false
   );
 exception when others then
   insert into verification_results values (
-    9, 'Direct client INSERT into travelers is blocked (no policy)',
+    11, 'Direct client INSERT into travelers is blocked (no policy)',
     'blocked (RLS exception)', 'blocked: ' || sqlerrm, true
   );
 end $$;
 
 -- ---------------------------------------------------------------------------
--- Check 10: linked_user_id cannot be changed by a direct client UPDATE.
+-- Check 12: linked_user_id cannot be changed by a direct client UPDATE.
 -- There's no UPDATE policy at all on travelers, so (unlike INSERT) this
 -- doesn't raise -- RLS's implicit "no matching rows" for an operation with
 -- zero applicable policies just makes the UPDATE affect nothing, the same
@@ -246,13 +283,46 @@ where family_id = (select family_id from fam_a) and display_name = 'Kid A';
 reset role;
 
 insert into verification_results
-select 10, 'Direct client UPDATE cannot set linked_user_id (no UPDATE policy at all)',
+select 12, 'Direct client UPDATE cannot set linked_user_id (no UPDATE policy at all)',
   'still null', coalesce(linked_user_id::text, 'null (correct)'), linked_user_id is null
 from public.travelers
 where family_id = (select family_id from fam_a) and display_name = 'Kid A';
 
 -- ---------------------------------------------------------------------------
--- Check 11: no direct client INSERT into trip_participants either.
+-- Check 13: a traveler cannot be removed by a direct client DELETE either.
+-- Same no-policy-at-all reasoning as check 12: with no DELETE policy on
+-- travelers at all, the operation silently affects 0 rows rather than
+-- raising (there's no "new row" for it to reject the way INSERT has).
+-- Verified by reading the row back as postgres afterward. This is the
+-- specific gap flagged in review: the original "travelers are deletable by
+-- family members" policy let any family member delete ANY traveler,
+-- including a linked adult, and because trip_participants.traveler_id is
+-- ON DELETE CASCADE that could have silently dropped them from existing
+-- trips too.
+-- ---------------------------------------------------------------------------
+set local role authenticated;
+set local request.jwt.claim.sub = 'a1111111-1111-1111-1111-111111111111';
+
+delete from public.travelers
+where family_id = (select family_id from fam_a) and display_name = 'Kid A';
+
+reset role;
+
+insert into verification_results
+select 13,
+  'Direct client DELETE of a traveler is blocked (no policy) -- row still exists',
+  'still exists',
+  case when exists (
+    select 1 from public.travelers
+    where family_id = (select family_id from fam_a) and display_name = 'Kid A'
+  ) then 'still exists (correct)' else 'DELETED -- NOT BLOCKED' end,
+  exists (
+    select 1 from public.travelers
+    where family_id = (select family_id from fam_a) and display_name = 'Kid A'
+  );
+
+-- ---------------------------------------------------------------------------
+-- Check 14: no direct client INSERT into trip_participants either.
 -- ---------------------------------------------------------------------------
 set local role authenticated;
 set local request.jwt.claim.sub = 'a1111111-1111-1111-1111-111111111111';
@@ -266,34 +336,34 @@ begin
     (select family_id from fam_a)
   );
   insert into verification_results values (
-    11, 'Direct client INSERT into trip_participants is blocked (no policy)',
+    14, 'Direct client INSERT into trip_participants is blocked (no policy)',
     'blocked (RLS exception)', 'NOT BLOCKED', false
   );
 exception when others then
   insert into verification_results values (
-    11, 'Direct client INSERT into trip_participants is blocked (no policy)',
+    14, 'Direct client INSERT into trip_participants is blocked (no policy)',
     'blocked (RLS exception)', 'blocked: ' || sqlerrm, true
   );
 end $$;
 
 -- ---------------------------------------------------------------------------
--- Checks 12-13: cross-family isolation for both new tables.
+-- Checks 15-16: cross-family isolation for both new tables.
 -- ---------------------------------------------------------------------------
 reset role;
 set local role authenticated;
 set local request.jwt.claim.sub = 'b2222222-2222-2222-2222-222222222222';
 
 insert into verification_results
-select 12, 'Family B cannot see Family A''s trip', '0', count(*)::text, count(*) = 0
+select 15, 'Family B cannot see Family A''s trip', '0', count(*)::text, count(*) = 0
 from public.trips where id = (select trip_id from trip_a);
 
 insert into verification_results
-select 13, 'Family B cannot see Family A''s trip participants', '0',
+select 16, 'Family B cannot see Family A''s trip participants', '0',
   count(*)::text, count(*) = 0
 from public.trip_participants where trip_id = (select trip_id from trip_a);
 
 -- ---------------------------------------------------------------------------
--- Check 14: the composite FK rejects a traveler/family mismatch even for a
+-- Check 17: the composite FK rejects a traveler/family mismatch even for a
 -- role that bypasses RLS entirely -- proves this is a structural guarantee,
 -- not just something the RPC's application-level check happens to catch.
 -- ---------------------------------------------------------------------------
@@ -308,12 +378,12 @@ begin
     (select family_id from fam_a)
   );
   insert into verification_results values (
-    14, 'Composite FK rejects a traveler/family mismatch even bypassing RLS',
+    17, 'Composite FK rejects a traveler/family mismatch even bypassing RLS',
     'blocked (FK violation)', 'NOT BLOCKED', false
   );
 exception when others then
   insert into verification_results values (
-    14, 'Composite FK rejects a traveler/family mismatch even bypassing RLS',
+    17, 'Composite FK rejects a traveler/family mismatch even bypassing RLS',
     'blocked (FK violation)', 'blocked: ' || sqlerrm, true
   );
 end $$;
