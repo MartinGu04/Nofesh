@@ -56,7 +56,34 @@
     "saved": "Saved"
   },
   "home": {
-    "emptyTitle": "Your family's trips will live here",
-    "emptyBody": "Nofesh will meet you where the trip is. This is just the beginning."
+    "empty": {
+      "title": "Your next trip starts here",
+      "body": "Nofesh will be with you from the first idea to the day you're back home.",
+      "cta": "Plan your first trip"
+    },
+    "trip": {
+      "countdown": "{days, plural, one {1 day to go} other {# days to go}}",
+      "today": "Today's the day",
+      "ongoing": "You're on this trip now",
+      "past": "This trip has ended",
+      "who": "With:",
+      "hint": "Packing, documents, and more will show up here as your trip gets closer."
+    }
+  },
+  "trips": {
+    "create": {
+      "title": "Let's plan your trip",
+      "destinationLabel": "Where are you off to?",
+      "destinationPlaceholder": "e.g. Barcelona",
+      "whenLabel": "When?",
+      "startDateLabel": "Leaving",
+      "endDateLabel": "Returning",
+      "whoLabel": "Who's coming?",
+      "newTravelerNameLabel": "Name",
+      "newTravelerDobLabel": "Date of birth (optional)",
+      "addSomeone": "Add someone else",
+      "removeTraveler": "Remove",
+      "submitCta": "Start planning"
+    }
   }
 }

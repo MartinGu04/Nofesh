@@ -56,7 +56,34 @@
     "saved": "נשמר"
   },
   "home": {
-    "emptyTitle": "כאן יופיעו הטיולים של המשפחה",
-    "emptyBody": "נופש ייפגש איתכם במקום שבו הטיול נמצא. זו רק ההתחלה."
+    "empty": {
+      "title": "הטיול הבא שלכם מתחיל כאן",
+      "body": "נופש ילווה אתכם מהרעיון הראשון ועד היום שתחזרו הביתה.",
+      "cta": "תכננו את הטיול הראשון שלכם"
+    },
+    "trip": {
+      "countdown": "{days, plural, one {עוד יום אחד} two {עוד יומיים} other {עוד # ימים}}",
+      "today": "היום הוא היום",
+      "ongoing": "אתם בטיול הזה עכשיו",
+      "past": "הטיול הזה הסתיים",
+      "who": "ביחד עם:",
+      "hint": "אריזה, מסמכים ועוד יופיעו כאן ככל שהטיול מתקרב."
+    }
+  },
+  "trips": {
+    "create": {
+      "title": "בואו נתכנן את הטיול",
+      "destinationLabel": "לאן נוסעים?",
+      "destinationPlaceholder": "למשל, ברצלונה",
+      "whenLabel": "מתי?",
+      "startDateLabel": "יוצאים",
+      "endDateLabel": "חוזרים",
+      "whoLabel": "מי בא?",
+      "newTravelerNameLabel": "שם",
+      "newTravelerDobLabel": "תאריך לידה (לא חובה)",
+      "addSomeone": "הוספת עוד מישהו",
+      "removeTraveler": "הסרה",
+      "submitCta": "מתחילים לתכנן"
+    }
   }
 }

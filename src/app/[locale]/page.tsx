@@ -1,13 +1,18 @@
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 import { getCurrentUserAndFamily } from "@/lib/auth/session";
+import { getFamilyCurrentTrip } from "@/lib/trips/queries";
 import { AppHeader } from "@/components/app-header";
+import { TripHeroEmpty } from "@/components/trip-hero-empty";
+import { TripSummaryCard } from "@/components/trip-summary-card";
+import type { AppLocale } from "@/i18n/routing";
 
 /**
- * Phase 0 Home: an authenticated, empty shell. No trips exist yet, so there
- * is no lifecycle logic here (see PRODUCT.md's lifecycle model) -- that's
- * V1. This route only proves sign-in -> family membership -> a real
- * authenticated page, end to end.
+ * V1 Slice 1 Home: the family's first real product moment. No trips yet ->
+ * the branded empty hero inviting them to plan one. A trip exists -> the
+ * smallest meaningful post-creation presentation (destination, dates,
+ * who's coming). The full lifecycle-aware Home (PRODUCT.md's six stages)
+ * is a later slice -- this only proves trip creation -> a changed Home
+ * state, end to end.
  */
 export default async function HomePage({
   params,
@@ -24,17 +29,16 @@ export default async function HomePage({
     redirect(`/${locale}/onboarding`);
   }
 
-  const t = await getTranslations("home");
+  const trip = await getFamilyCurrentTrip(familyId);
 
   return (
     <>
       <AppHeader locale={locale} />
-      <main className="flex flex-1 flex-col items-center justify-center gap-3 px-[var(--space-md)] py-[var(--space-2xl)] text-center">
-        <h1 className="font-display text-3xl text-text">
-          {t("emptyTitle")}
-        </h1>
-        <p className="max-w-md text-text-muted">{t("emptyBody")}</p>
-      </main>
+      {trip ? (
+        <TripSummaryCard trip={trip} locale={locale as AppLocale} />
+      ) : (
+        <TripHeroEmpty />
+      )}
     </>
   );
 }
