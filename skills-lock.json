@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "skills": {
+    "hebrew-content-writer": {
+      "source": "skills-il/localization",
+      "sourceType": "github",
+      "computedHash": "674135e0368fcf0f227147f425d4001eee0c6302acef167306332fc997887975"
+    },
+    "hebrew-i18n": {
+      "source": "skills-il/localization",
+      "sourceType": "github",
+      "computedHash": "f49523f766b307d5614c842e60ecc9b66efb3098c9ea1cf59a9f9389d6e7365b"
+    },
+    "israeli-appsec-scanner": {
+      "source": "skills-il/security-compliance",
+      "sourceType": "github",
+      "computedHash": "1b86ea622bb3de562633056fd81aa2b9e572817953d63db265d7f6d053276719"
+    },
+    "israeli-postgres-toolkit": {
+      "source": "skills-il/developer-tools",
+      "sourceType": "github",
+      "computedHash": "53883cb18816fe6a3a51b881cb3bb538e2a0f3c305ccd7b035def6d062484c8f"
+    },
+    "israeli-privacy-shield": {
+      "source": "skills-il/security-compliance",
+      "sourceType": "github",
+      "computedHash": "a1f1f9b11a9ac48c586ab9c5e2f065790be34ac0f480c93e02dadab8c876c42a"
+    }
+  }
+}
