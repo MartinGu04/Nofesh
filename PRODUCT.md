@@ -50,10 +50,14 @@ Planning → Preparing → Packing → Departure → During the trip → Return 
 | **During the trip** | The family is away | Home becomes a calm **Today** view: today's plan, weather, quick access to confirmations — not a management dashboard |
 | **Return / Memory** | Just landed home | Unpacking nudge, a two-question reflection ("what did we forget / not use") that feeds packing memory, and the trip settles into an archive |
 
-A family's stage is **derived from trip dates and state**, not chosen from a menu.
-The system decides when to shift tone; the family never has to configure it.
-Home always shows whichever trip is most relevant right now (soonest departure or
-currently in progress); other trips remain one tap away.
+A family's stage is **derived from trip dates and state**, not chosen from a menu
+and never stored/pinned. The system decides what Home *emphasizes*; the family
+never has to configure it. Critically, the derived stage only controls
+emphasis, not access — packing, tasks, and trip items all stay reachable at
+any time regardless of stage; a family can start packing the day a trip is
+created if they want to, Home just won't lead with it yet. Home always shows
+whichever trip is most relevant right now (soonest departure or currently in
+progress); other trips remain one tap away.
 
 ## Core product pillars (Phase-ordered, not equal-weight)
 
@@ -75,13 +79,17 @@ transparent in V1 (rules over the family's own history), not a black box.
 
 ### 3. Trip Inbox / Chaos-to-Trip
 Families don't get their trip information in one clean place — it arrives as
-screenshots, forwarded emails, PDFs, and pasted text. Nofesh's long-term job is to
-read that mess and propose flights, stays, restaurants, activities, addresses,
-dates, times, confirmation codes, and action items from it. **Every extracted
-fact is a candidate until a person confirms it** — nothing becomes authoritative
-trip data without a human tap. V1 ships the confirm-before-authoritative model
-with manual entry; automated extraction from images/PDFs is a deliberate later
-phase (see Roadmap).
+screenshots, forwarded emails, PDFs, and pasted text. This is one of Nofesh's
+core differentiators, and V1 ships a real (if intentionally narrow) version of
+it: a family can paste text, upload a screenshot/image, or upload a PDF, and
+Nofesh proposes candidate flights, stays, restaurants, activities, dates,
+times, and confirmation codes from it. **Every extracted fact is a candidate
+until a person confirms it** — nothing becomes authoritative trip data without
+a human tap; a rejected or edited candidate never silently reappears as-is.
+V1's extraction deliberately targets the common cases (flights, accommodation,
+restaurant/activity bookings, generic dated confirmations) rather than trying
+to understand every travel document that exists. Email forwarding / automatic
+mailbox ingestion and link crawling are explicitly out of V1 — see Roadmap.
 
 ### 4. Departure Assistant
 In the last day or two before leaving, nobody needs the whole app — they need "am
@@ -133,17 +141,23 @@ the product must resist turning into a dashboard: during the trip, less is more.
 ## V1 scope boundaries
 
 V1 is intentionally narrow. It proves the lifecycle-aware Home, the Family
-Companion foundation, manual Trip Items/Documents/Tasks, a real (if heuristic)
-Packing Memory loop, and a first version of the Departure Assistant. It
-deliberately **excludes**:
+Companion foundation, manual Trip Items/Documents/Tasks, a narrow-but-real
+Trip Inbox extraction loop, a real (if heuristic) Packing Memory loop, and a
+first version of the Departure Assistant. It deliberately **excludes**:
 
-- Any automated extraction from screenshots/PDFs/forwarded email (Trip Inbox
-  ships as structured manual entry first; "chaos-to-trip" parsing is Phase 2+).
+- Email forwarding / automatic mailbox ingestion, link crawling, and
+  extraction from document types beyond common travel confirmations
+  (flights, stays, restaurant/activity bookings, generic dated
+  confirmations) — Trip Inbox extraction itself (pasted text, image, PDF) is
+  in V1, but stays intentionally narrow rather than general-purpose.
 - Payments, price comparison, or booking of anything.
 - Passport scans or card storage of any kind.
 - Push notifications, offline sync, or a real service worker (PWA-*ready*
   architecture only — see ARCHITECTURE.md).
 - Roles beyond "adult family member" and "traveler" (no granular permissions).
+- Any UI for switching between multiple families for one user — the data
+  model supports a user belonging to more than one family, but V1 doesn't
+  need to expose that.
 
 ## What "good" looks like
 
@@ -165,8 +179,9 @@ See the architecture document for the domain model this roadmap is built on.
    DESIGN.md wired into Tailwind.
 4. First migration: `families`, `family_members`, `travelers`, profile table, RLS
    policies; verify family isolation with a real cross-family access test.
-5. Auth flow: sign up, create/join a family, invite another adult, minimal
-   profile screen.
+5. Auth flow: Google OAuth as the primary sign-in, email magic link/OTP as
+   fallback (no password auth) — create/join a family, invite another adult,
+   minimal profile screen.
 6. App shell: navigation, empty Home route, shared empty/error/loading patterns.
 
 **V1 — First usable slice**
@@ -175,15 +190,19 @@ See the architecture document for the domain model this roadmap is built on.
 8. Home lifecycle logic: derive stage from trip state/dates; build the five
    distinct Home presentations (Planning/Preparing/Packing/Departure/Today).
 9. Trip items: manual structured entry (flight, stay, restaurant, activity,
-   transport) with confirmation codes; document upload attached to items/trip.
+   transport) with confirmation codes; document upload attached to items/trip;
+   optional user-uploaded trip cover image with a polished branded fallback
+   when none is provided (no stock-image API dependency in V1).
 10. Tasks: simple checklist tied to a trip and (usually) a lifecycle stage.
 11. Packing lists & items: per traveler, per trip; a first heuristic default list
     generator (by trip length, destination climate signal, traveler age).
 12. Packing memory v0: end-of-trip two-question reflection; store as signals;
     feed them into the next trip's default list for that family/traveler.
-13. Trip Inbox v0: manual "paste and map" flow only — user pastes confirmation
-    text and fills structured fields themselves; nothing becomes authoritative
-    without explicit confirmation. Automated parsing is out of scope for V1.
+13. Trip Inbox v0: pasted text, screenshot/image upload, and PDF upload, each
+    run through a narrow extraction step (flights, stays, restaurant/activity
+    bookings, generic dated confirmations only) that proposes candidate trip
+    items; nothing becomes authoritative until the user reviews and confirms
+    it. Email ingestion and link crawling are out of scope for V1.
 14. Departure Assistant v0: a single surfaced checklist in the final 24–48h
     combining open tasks, remaining packing items, and document readiness.
 15. Cross-cutting polish: Hebrew/RTL QA pass, accessibility pass, mobile QA,

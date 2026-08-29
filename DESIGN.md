@@ -124,6 +124,12 @@ Contrast is checked independently per mode — see Accessibility below.
   use the display serif; everything else is Assistant.
 - Keep `kern` and `calt` enabled on every text node; never set
   `font-feature-settings: normal` globally.
+- **Fonts are self-hosted**, not loaded at runtime from Google Fonts. Both
+  Frank Ruhl Libre and Assistant are Google Fonts (free, open license) but
+  ship as local static assets via `next/font/local`, subset to Hebrew +
+  Latin — no third-party font request at runtime, no CLS/FOIT risk tied to an
+  external host, and no dependency on a network call that Israeli mobile
+  connections don't need to make.
 
 ## Shape and signature motif
 
@@ -156,12 +162,24 @@ lists cap around 720px on larger screens rather than stretching edge to edge.
 ## Imagery
 
 Destination imagery is a first-class layout element, not decoration bolted
-onto a card. Full-bleed photography over a warm color-graded overlay (navy
-or terracotta wash at low opacity, never a flat dark scrim that kills the
-photo) is the default hero treatment. Avoid generic "stock traveler with
-suitcase at airport" photography — prefer place-led imagery (the destination
-itself) or, where no real photo exists yet (a trip still being planned), a
-warm illustrated placeholder in the brand palette rather than a gray box.
+onto a card — but V1 has no stock-image API and does not automatically fetch
+destination photography. In practice this means two supported states, and
+the second one has to look intentional, not like a missing image:
+
+- **User-uploaded trip cover photo**, when the family adds one: full-bleed,
+  over a warm color-graded overlay (navy or terracotta wash at low opacity,
+  never a flat dark scrim that kills the photo).
+- **The Nofesh-branded fallback**, when no photo has been added — the default
+  case for most trips at first, especially early in Planning. This is the
+  horizon gradient (navy → terracotta) with the wave-line motif, treated as a
+  real hero, not an empty state. It should feel like a deliberate part of the
+  brand, not a placeholder apologizing for missing content. A trip with no
+  cover photo should look just as considered as one with a stunning photo of
+  the destination.
+
+Automatic destination photography (a stock/imagery API keyed to the trip's
+destination) is a deliberate later addition once the branded fallback has
+been validated, not a V1 dependency.
 
 ## Components (guidance, not a full spec)
 

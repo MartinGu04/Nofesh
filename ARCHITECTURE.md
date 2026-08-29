@@ -38,13 +38,26 @@ migrations — see PRODUCT.md's Roadmap for sequencing.
 
 ## Auth model
 
-Supabase Auth handles identity (email/password to start; magic link and/or
-Google OAuth are easy additions later — flagged as an open decision). A
-signed-in user is a **family member**. On first sign-up, a user either
-creates a new family or accepts an invite into an existing one. A user
-belongs to at least one family; the schema allows belonging to more than one
-(see `family_members` below) to cover blended-family and grandparent cases,
-even though V1 UI may only actively exercise the single-family path.
+Supabase Auth handles identity. **Google OAuth is the primary sign-in
+method**, with email magic link/OTP as a fallback for anyone without (or not
+wanting to use) a Google account. There is no password provider — a
+consumer/family product should not make anyone manage a password, and
+removing the provider removes an entire class of credential-stuffing and
+password-reset UX to build and secure. A signed-in user is a **family
+member**. On first sign-in, a user either creates a new family or accepts an
+invite into an existing one.
+
+A user can belong to more than one family (see `family_members` below), to
+cover blended-family and grandparent cases without a future schema rework —
+this costs nothing at the data/RLS level, so it's supported from the first
+migration even though V1 UI does not expose switching between families (see
+"Multi-family membership" below).
+
+**External dependency**: a real Google OAuth client (Google Cloud project,
+OAuth consent screen, authorized redirect URIs pointing at the Supabase Auth
+callback) has to exist before Google sign-in works end-to-end. This is an
+account-level setup step outside the codebase — see the Phase 0 scope
+discussion for how this is being handled.
 
 **Travelers without accounts are not Supabase Auth users.** They are rows the
 family manages, optionally linked to a real account later (e.g. a teenager
@@ -82,6 +95,17 @@ definition of done, not a nice-to-have.
 owning family's membership — they never authenticate themselves, so their
 "access" is entirely mediated by the adult family members' RLS.
 
+### Multi-family membership
+
+`family_members` is a genuine many-to-many join (a `user_id` can appear in
+more than one `family_id` row), not a single `family_id` column on the user.
+This is deliberate: it's essentially free to model correctly now and a
+painful migration to retrofit later (every family-scoped table's RLS policy
+already keys off `family_members`, not off a user column, so this costs
+nothing extra in policy complexity). V1 does not build any UI for switching
+between families — a user in practice interacts with one family — but the
+schema never assumes "one family per user."
+
 ## Domain model (Phase 0/V1 minimum)
 
 This is the conceptual model — entity list, key columns, relationships — not
@@ -109,7 +133,8 @@ travelers                           -- anyone a trip/packing list is about
 
 trips
   id, family_id → families, title, destination, destination_country,
-  start_date, end_date, cover_image_url (nullable), status
+  start_date, end_date, cover_image_path (nullable, Storage path — null means
+  render the branded fallback, not a broken image), status
   ('draft'|'active'|'archived'), created_by → auth.users, created_at
 
 trip_participants                   -- who is going on THIS trip
@@ -118,16 +143,31 @@ trip_participants                   -- who is going on THIS trip
 trip_items                          -- flights, stays, restaurants, activities...
   id, trip_id → trips, family_id → families (denormalized for RLS simplicity),
   item_type ('flight'|'stay'|'restaurant'|'activity'|'transport'|'other'),
-  title, starts_at (timestamptz, nullable), ends_at (nullable),
+  title, starts_at (timestamptz, nullable), ends_at (timestamptz, nullable),
+  timezone (text, IANA name e.g. 'Asia/Jerusalem', nullable),
   location_text (nullable), confirmation_code (nullable),
-  details jsonb (type-specific structured extras),
-  status ('candidate'|'confirmed'), source ('manual'|'pasted'),
+  status ('candidate'|'confirmed'),
+  source ('manual'|'pasted_text'|'image'|'pdf'),
+  source_inbox_item_id → inbox_items (nullable),
+  details jsonb (type-specific long-tail extras only — seat number, room
+    type, party size; never title/timing/location/status, which are always
+    the typed columns above so the timeline, sort, and list views never need
+    to reach into JSON for the fields they render every time),
   created_by → auth.users, created_at
 
 documents
   id, family_id → families, trip_id → trips (nullable),
   trip_item_id → trip_items (nullable), storage_path, file_name,
   mime_type, uploaded_by → auth.users, created_at
+
+inbox_items                         -- raw Trip Inbox input, before extraction
+  id, family_id → families, trip_id → trips (nullable — may be uncategorized
+    until the user assigns it to a trip),
+  source_type ('pasted_text'|'image'|'pdf'),
+  raw_text (nullable, for pasted text),
+  storage_path (nullable, original image/PDF in Storage),
+  status ('pending'|'processed'|'needs_review'|'discarded'),
+  created_by → auth.users, created_at
 
 tasks
   id, trip_id → trips, family_id → families, title,
@@ -159,11 +199,14 @@ Notes on deliberate simplicity:
   signals (tasks done, packing completion). This avoids a stage column that
   can silently drift out of sync with reality. Flagged as an open decision
   in case product testing shows a family needs to *pin* a stage manually.
-- **`trip_items.details` is a single `jsonb` column** rather than a table
-  per item type. Five item types with mostly-overlapping common fields
-  (title/time/location/confirmation code) don't earn five tables yet; jsonb
-  holds the type-specific extras (seat number, room type, party size). If
-  V1 usage shows a type needs real relational querying, split it out then.
+- **`trip_items` keeps every timeline-critical field as a typed column**
+  (`title`, `item_type`, `starts_at`/`ends_at`, `timezone`, `location_text`,
+  `status`, `source`) — anything the Today view, the timeline, or a sort/
+  filter needs is a real column, never buried in JSON. `details jsonb` exists
+  only for the type-specific long tail (seat number, room type, party size)
+  that's genuinely per-type and not commonly queried. Five item types with
+  mostly-overlapping common fields still don't earn five separate tables,
+  but the common fields themselves are not optional to type.
 - **`packing_memory_signals` is an append-only log**, not a pre-aggregated
   "family packing profile" table. V1's suggestion logic reads recent signals
   per family/traveler/category at request time; a materialized profile can
@@ -173,12 +216,57 @@ Notes on deliberate simplicity:
 
 ## Storage
 
-A single Supabase Storage bucket (e.g. `trip-documents`) with per-family
-folder prefixes (`{family_id}/...`) and storage policies mirroring the same
-`is_family_member` check used for Postgres RLS. No public buckets for user
-documents. Cover images for trips may live in a separate, smaller bucket or
-be sourced from a curated set of destination images shipped with the app
-(avoids a "which images can users upload publicly" question in V1).
+Supabase Storage buckets, all private with per-family folder prefixes
+(`{family_id}/...`) and storage policies mirroring the same
+`is_family_member` check used for Postgres RLS — no public buckets for
+anything a user uploaded:
+
+- `trip-documents` — confirmations, boarding passes, and other document
+  attachments.
+- `trip-covers` — optional user-uploaded trip cover photos
+  (`trips.cover_image_path`). Served via a signed URL or a thin proxy route,
+  not a public bucket, even though the content is just a destination photo —
+  keeping one storage-access pattern for every bucket is simpler than
+  special-casing "this one's fine to be public."
+- `trip-inbox` — original screenshots/PDFs uploaded to the Trip Inbox before
+  extraction. Retained after extraction (not auto-deleted) so a user can
+  re-open what they uploaded if a candidate needs correcting; a manual
+  delete is available like any other document.
+
+## Trip Inbox extraction pipeline
+
+V1's extraction is a **server-side, on-demand, narrowly-scoped** step — not a
+background worker/queue system, and not an attempt at general document
+understanding.
+
+1. A family member pastes text, or uploads an image/PDF, into the Trip
+   Inbox. This is written to `inbox_items` (`status = 'pending'`) and, for
+   image/PDF, the original file to the `trip-inbox` bucket first.
+2. A Server Action/Route Handler sends the content (text, or the image/PDF)
+   to a multimodal LLM with a **constrained extraction prompt and schema**:
+   it is only asked to identify flights, accommodation stays, restaurant/
+   activity bookings, and generic dated confirmations, and to return
+   structured candidates matching `trip_items`' typed columns (title, type,
+   start/end time, timezone, location, confirmation code) plus a per-field
+   confidence signal. It is explicitly not asked to interpret insurance
+   policies, medical documents, or visa paperwork — those can still be
+   uploaded as plain `documents`, just not parsed.
+3. Results are written as `trip_items` rows with `status = 'candidate'` and
+   `source_inbox_item_id` pointing back to the originating `inbox_items` row;
+   `inbox_items.status` moves to `processed` (or `needs_review` if the model
+   returned nothing usable — never silently discarded).
+4. The user reviews each candidate against the source (with the original
+   pasted text or image alongside it) and explicitly confirms, edits, or
+   discards it. Only `confirmed` items count as authoritative trip data
+   anywhere else in the product (Departure Assistant, Today view, exports).
+
+The LLM call happens from a trusted server context only (Server
+Action/Route Handler), with the provider API key in server-only
+environment scope — the client never talks to the extraction provider
+directly. No queue/worker is introduced for this in V1; a single request/
+response call is enough at V1's expected volume, and adding a queue before
+there's evidence it's needed would be exactly the premature infrastructure
+the product brief asked to avoid.
 
 ## Realtime
 
@@ -245,14 +333,23 @@ deferred until the core product is proven.
 
 ## Deferred (explicitly out of Phase 0/V1)
 
-- Automated extraction from screenshots/PDFs/forwarded text (the eventual
-  "Trip Inbox" parsing engine) — needs its own design pass (what model, what
-  confidence UX, what happens on a bad extraction) before it's built.
+- Email forwarding / automatic mailbox ingestion and link crawling for Trip
+  Inbox — V1 extraction is limited to pasted text, image upload, and PDF
+  upload, initiated explicitly by the user each time.
+- Extraction beyond the narrow V1 document types (flights, stays,
+  restaurant/activity bookings, generic dated confirmations) — e.g. parsing
+  insurance policies or visa paperwork structurally, rather than just
+  storing them as an attached document.
+- Automatic destination photography (stock/imagery API keyed to a trip's
+  destination) — V1 ships user-upload-or-branded-fallback only.
 - Push notifications.
 - Offline support / service worker / background sync.
 - Weather API integration (Departure Assistant references "weather changes"
   conceptually in V1 via manual/simple lookups; a real provider integration
   is a fast-follow, not blocking).
-- Multi-family sharing of a single trip (e.g. two families traveling
-  together) — the schema's `family_id`-per-trip model would need rework.
+- UI for a user to switch between multiple families, or for two families to
+  share a single trip — the schema supports multi-family membership per
+  user (see above), but no UI is built around it in V1.
 - Fine-grained roles beyond adult member / traveler.
+- Password-based authentication — intentionally not offered at all, not just
+  deferred.

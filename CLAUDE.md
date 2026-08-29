@@ -53,18 +53,37 @@ booking platform and never processes payments.
    default separator. If a screen you're building starts to look like an
    admin panel, stop and reread DESIGN.md's anti-patterns section before
    continuing.
-7. **Home is lifecycle-aware, not feature-complete.** Don't add "just one
-   more section" to the Home screen because a feature needs *some* visible
-   entry point. Stage-appropriate restraint is the actual feature; route
-   less-urgent things to a trip detail screen instead of Home.
+7. **Home is lifecycle-aware, not feature-complete — and the derived stage
+   controls emphasis, never access.** Don't add "just one more section" to
+   the Home screen because a feature needs *some* visible entry point.
+   Stage-appropriate restraint is the actual feature; route less-urgent
+   things to a trip detail screen instead of Home. But never gate packing,
+   tasks, or trip items behind the current stage — a family can pack the day
+   they create a trip if they want to; Home just won't lead with it yet.
 8. **Migrations are files, not hand edits.** Every schema change is a SQL
    migration under version control via the Supabase CLI. Never modify a live
    schema by hand, even in dev.
-9. **Don't build the deferred list.** Automated screenshot/PDF extraction,
-   push notifications, offline/service-worker support, and payments are
-   explicitly out of scope until a human asks for them by name (see
-   ARCHITECTURE.md's "Deferred" section). Building a stub or a "just in case"
-   version of any of these is scope creep, not helpfulness.
+9. **Don't build the deferred list.** Email/mailbox ingestion, link crawling,
+   extraction beyond flights/stays/restaurant-activity bookings/generic dated
+   confirmations, automatic destination photography, push notifications,
+   offline/service-worker support, password auth, and payments are explicitly
+   out of scope until a human asks for them by name (see ARCHITECTURE.md's
+   "Deferred" section). Building a stub or a "just in case" version of any of
+   these is scope creep, not helpfulness. Trip Inbox extraction itself
+   (pasted text / image / PDF → candidate trip items) **is** in scope for
+   V1 — don't mistake it for something to defer; just keep it narrow per
+   ARCHITECTURE.md's extraction pipeline section.
+10. **`trip_items` timeline-critical fields are typed columns, not jsonb.**
+    Title, item type, start/end datetime, timezone, location, status, and
+    source/confirmation state are always real columns. `details jsonb` is
+    only for genuine per-type long-tail extras (seat number, room type).
+    Never move a field into jsonb just because it's convenient — if the
+    Today view, a sort, or a filter would ever need it, it's a column.
+11. **Auth is Google OAuth first, email OTP/magic-link fallback, no
+    passwords.** Don't add a password provider "for completeness" or "as a
+    fallback" — that's a deliberate exclusion, not a gap.
+12. **Fonts are self-hosted** (`next/font/local`, Hebrew+Latin subsets), never
+    a runtime Google Fonts `<link>`/`@import`.
 
 ## Conventions
 
